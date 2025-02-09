@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>scalp_fighter</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>2f33405f-4384-438c-95ff-67a5eb56d8aa</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Cache.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Cache.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
+    <PackageReference Include="newtonsoft.json" Version="13.0.3" />
+    <PackageReference Include="restsharp" Version="112.1.0" />
+  </ItemGroup>
+
+</Project>
