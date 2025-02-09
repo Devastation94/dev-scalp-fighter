@@ -4,15 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace scalp_fighter.Clients
 {
-    public class PokemonCenterClient
+    public class _401GamesClient
     {
         private static readonly HttpClient client = new();
-        private static readonly string searchUrl = "https://www.pokemoncenter.com/en-ca/search/{0}";
-        private static readonly List<string> Keywords = new List<string>() { "prismatic-evolutions" };
+        private static readonly string _401SearchUrl = "https://store.401games.ca/collections/pokemon-trading-cards?sort=price_max_to_min&filters=Product+Type,Product+Type_Booster+Boxes,Price_from_to,66-400,In+Stock,True";
+        private static readonly string jjAddToCartUrl = "https://shop.jjcards.com/add_cart.asp?quick=1&item_id={0}&cat_id=0";
+        private static readonly List<string> Keywords = new List<string>() { "Pokemon TCG" };
 
         public async Task<List<Search>> GetPokemon()
         {
@@ -23,12 +25,13 @@ namespace scalp_fighter.Clients
             {
                 foreach (var keyword in Keywords)
                 {
-                    var keywordSearchUrl = string.Format(searchUrl, keyword);
-                    string content = await client.GetStringAsync(keywordSearchUrl);
+                    string content = await client.GetStringAsync(_401SearchUrl);
                     var doc = new HtmlDocument();
                     doc.LoadHtml(content);
 
-                    var products = doc.DocumentNode.SelectNodes("//div[contains(@class, 'product-grid-item')]");
+                    var jsonMatch = Regex.Match(content, @"\{""name"":.*?\}");
+
+                    var products = doc.DocumentNode.SelectNodes("//div[contains(@class, 'product-container')]");
                     var inStockProducts = new List<Product>();
 
                     if (products == null || products.Count == 0)
@@ -39,25 +42,23 @@ namespace scalp_fighter.Clients
 
                     foreach (var product in products)
                     {
-                        var nameNode = product.SelectSingleNode(".//h1[contains(@class, 'product-title--lz7HX')]");
-                        var priceNode = product.SelectSingleNode(".//span[contains(@class, 'product-price--uqHtS')]");
-                        var availabilityNode = product.SelectSingleNode(".//div[contains(@class, 'product-image-oos--Lae0t')]");
+                        var nameNode = doc.DocumentNode.SelectSingleNode("//span[@class='product-title']");
+                        var priceNode = doc.DocumentNode.SelectSingleNode("//div[@class='fs-price']");
+                        var availabilityNode = doc.DocumentNode.SelectSingleNode("//span[@class='in-stock']");
 
-                        // Extract values
-                        string name = nameNode?.InnerText.Trim();
-                        string price = priceNode?.InnerText.Trim();
-                        string test = availabilityNode != null ? "Out of Stock" : "In Stock";
-
-                        if (nameNode != null && priceNode != null)
+                        if (nameNode != null && priceNode != null && availabilityNode != null)
                         {
                             string productName = nameNode.InnerText.Trim();
-                            string productUrl = "https://www.pokemoncenter.com" + nameNode.Attributes["href"].Value;
-                            string productPrice = priceNode.InnerText.Trim();
-                            string availability = availabilityNode?.InnerText.Trim() ?? "In Stock";
+                            var baseUrl = nameNode.Attributes["href"].Value;
+                            var itemId = Regex.Match(baseUrl, @"_(\d+)\.html$");
 
-                            if (!availability.ToLower().Contains("out of stock"))
+                            var url = string.Format(jjAddToCartUrl, itemId.Groups[1].Value);
+                            string productPrice = priceNode.InnerText.Trim();
+                            string availability = availabilityNode.InnerText.Trim();
+
+                            if (availability.Trim().ToUpper() == "IN STOCK.")
                             {
-                                inStockProducts.Add(new Product(productName, productPrice, true, productUrl));
+                                inStockProducts.Add(new Product(productName, productPrice, true, url));
                             }
                         }
                     }

@@ -9,7 +9,7 @@ namespace scalp_fighter.Clients {
         private static readonly HttpClient client = new ();
         private static readonly string jjSearchUrl = "https://shop.jjcards.com/search.asp?keyword={0}+tcg&sortby=2&page=1&catid=";
         private static readonly string jjAddToCartUrl = "https://shop.jjcards.com/add_cart.asp?quick=1&item_id={0}&cat_id=0";
-        private static readonly List<string> Keywords = new List<string> () { "Prismatic Evolutions", "Pokemon Scarlet & Violet 151" };
+        private static readonly List<string> Keywords = new List<string> () { "Pokemon TCG" };
 
         public async Task<List<Search>> GetPokemon () {
             var searchList = new List<Search>();
@@ -48,7 +48,7 @@ namespace scalp_fighter.Clients {
 
                             if (availability.Trim().ToUpper() == "IN STOCK.")
                             {
-                                inStockProducts.Add(new Product(productName, productPrice, availability, url));
+                                inStockProducts.Add(new Product(productName, productPrice, true, url));
                             }
                         }
                     }

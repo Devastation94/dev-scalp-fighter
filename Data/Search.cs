@@ -12,14 +12,14 @@ namespace scalp_fighter.Data {
     public class Product {
         public string Name { get; }
         public string Price { get; }
-        public string Status { get; }
+        public bool Available { get; }
         public string Url { get; set; }
 
-        public Product(string name, string price, string status, string url) {
+        public Product(string name, string price, bool available, string url) {
             Name = name;
             Price = price;
-            Status = status;
-            Url = $"[{Name}]({url})\n";
+            Available = available;
+            Url = $"[{name}]({url}) {price}\n";
         }
     }
 }

@@ -11,6 +11,8 @@ class WebpageMonitor {
     private static JJClient jJClient = new ();
     private static PokemonCenterClient PokemonCenterClient = new();
     private static DiscordClient discordClient = new();
+    private static _401GamesClient _401GamesClient = new();
+    private static CanadaComputersClient CanadaComputersClient = new();
 
     static async Task Main () {
         Console.WriteLine ("Starting webpage monitor...");
@@ -20,17 +22,69 @@ class WebpageMonitor {
        
         timer.Start ();
 
+        ProductsInStock = new();
         await ScanJJ (); // Initial check
-        await ScanPokemonCenter();
-        await ScanChimera();
+        await ScanCanadaComputers();
+       // await ScanPokemonCenter();
+       // await ScanChimera();
+      //  await Scan401Games();
+      await PostResults();
         Console.ReadLine (); // Keep the program running
     }
 
    static async Task HandleElapsedEvent()
     {
+        ProductsInStock = new();
         await ScanJJ();
-        await ScanPokemonCenter();
-        await ScanChimera();
+        await ScanCanadaComputers();
+        await PostResults();
+        //   await ScanPokemonCenter();
+        // await ScanChimera();
+        //  await Scan401Games();
+    }
+
+    private static async Task PostResults()
+    {
+        var productsInStockJson = JsonSerializer.Serialize(ProductsInStock);
+        var oldProductsInStockJson = JsonSerializer.Serialize(OldProductsInStock);
+
+        if (productsInStockJson != oldProductsInStockJson)
+        {
+            foreach (var set in ProductsInStock)
+            {
+                var newItemsInStock = GetNewItemsInStock();
+                var webhookValue = "";
+
+                if (newItemsInStock.Count > 0)
+                {
+                    foreach (var itemInStock in newItemsInStock)
+                    {
+                        foreach (var product in itemInStock.Products)
+                        {
+                            var productInfo = $"New Item Listed: {product.Name}, Price: {product.Price}, Status: {product.Available}\n";
+                            Console.WriteLine(productInfo);
+                            webhookValue += product.Url;
+                        }
+                    }
+
+                    await discordClient.PostWebHook(webhookValue);
+
+                }
+            }
+            File.WriteAllText("Cache.json", productsInStockJson);
+            OldProductsInStock = ProductsInStock;
+        }
+    }
+
+    private static async Task ScanCanadaComputers()
+    {
+        var gpuResults = await CanadaComputersClient.GetPokemon();
+        ProductsInStock.AddRange(gpuResults);
+    }
+
+    private static async Task Scan401Games()
+    {
+        var pokemonCenterResults = await _401GamesClient.GetPokemon();
     }
 
     private static async Task ScanPokemonCenter()
@@ -46,35 +100,8 @@ class WebpageMonitor {
     private static async Task ScanJJ () {
         try {
             var jjResults = await jJClient.GetPokemon();
-            ProductsInStock = jjResults;
-            var productsInStockJson = JsonSerializer.Serialize(ProductsInStock);
-            var oldProductsInStockJson = JsonSerializer.Serialize(OldProductsInStock);
+            ProductsInStock.AddRange(jjResults);
 
-            if (productsInStockJson != oldProductsInStockJson) {
-                foreach (var set in jjResults)
-                {
-                    var newItemsInStock = GetNewItemsInStock();
-                    var webhookValue = "@everyone\n";
-
-                    if (newItemsInStock.Count > 0)
-                    {
-                        foreach (var itemInStock in newItemsInStock)
-                        {
-                            foreach (var product in itemInStock.Products)
-                            {
-                                var productInfo = $"New Pokemon Item Listed: {product.Name}, Price: {product.Price}, Status: {product.Status}\n";
-                                Console.WriteLine(productInfo);
-                                webhookValue += product.Url;
-                            }
-                        }
-
-                        await discordClient.PostWebHook(webhookValue);
-                        
-                    }
-                }
-                File.WriteAllText("Cache.json", productsInStockJson);
-                OldProductsInStock = ProductsInStock;
-            }
         } catch (Exception ex) {
             Console.WriteLine ($"Error fetching webpage: {ex.Message}");
         }
