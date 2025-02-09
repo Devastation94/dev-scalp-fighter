@@ -9,6 +9,7 @@ class WebpageMonitor {
     private static List<Search> OldProductsInStock = new();
     private static List<Search> ProductsInStock = new();
     private static JJClient jJClient = new ();
+    private static PokemonCenterClient PokemonCenterClient = new();
     private static DiscordClient discordClient = new();
 
     static async Task Main () {
@@ -20,6 +21,8 @@ class WebpageMonitor {
         timer.Start ();
 
         await ScanJJ (); // Initial check
+        await ScanPokemonCenter();
+        await ScanChimera();
         Console.ReadLine (); // Keep the program running
     }
 
@@ -32,7 +35,7 @@ class WebpageMonitor {
 
     private static async Task ScanPokemonCenter()
     {
-
+        var pokemonCenterResults = await PokemonCenterClient.GetPokemon();
     }
     
     private static async Task ScanChimera()
