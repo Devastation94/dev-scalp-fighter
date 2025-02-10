@@ -5,26 +5,23 @@ using System.Web;
 
 namespace scalp_fighter.Clients {
 
-    public class JJClient {
+    public class ChimeraClient {
         private static readonly HttpClient client = new ();
-        private static readonly string jjSearchUrl = "https://shop.jjcards.com/search.asp?keyword={0}+tcg&sortby=2&page=1&catid=";
+        private static readonly string ChimeraSearchUrl = "https://shop.jjcards.com/search.asp?keyword={0}+tcg&sortby=2&page=1&catid=";
         private static readonly string jjAddToCartUrl = "https://shop.jjcards.com/add_cart.asp?quick=1&item_id={0}&cat_id=0";
-        private static readonly List<string> Keywords = new List<string> () { "Prismatic Evolutions", "Obsidian Flames", "Surging Sparks", "Journey Together" };
+        private static readonly List<string> Keywords = new List<string> () { "Pokemon TCG" };
 
         public async Task<List<Search>> GetPokemon () {
             var searchList = new List<Search>();
-            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
-            try
-            {
+            try {
                 foreach (var keyword in Keywords)
                 {
-                    var searchUrl = string.Format(jjSearchUrl, keyword);
-                    string content = await client.GetStringAsync(searchUrl);
+                    string content = await client.GetStringAsync(string.Format(ChimeraSearchUrl, keyword));
                     var doc = new HtmlDocument();
                     doc.LoadHtml(content);
 
-                    var products = doc.DocumentNode.SelectNodes("//div[contains(@class, 'product-content')]");
+                    var products = doc.DocumentNode.SelectNodes("//div[contains(@class, 'grid-view-item__link')]");
                     var inStockProducts = new List<Product>();
 
                     if (products == null || products.Count == 0)
@@ -35,9 +32,9 @@ namespace scalp_fighter.Clients {
 
                     foreach (var product in products)
                     {
-                        var nameNode = product.SelectSingleNode(".//a");
-                        var priceNode = product.SelectSingleNode(".//span[contains(@class, 'price')]");
-                        var availabilityNode = product.SelectSingleNode(".//span[contains(@class, 'availability')]");
+                        var nameNode = doc.DocumentNode.SelectSingleNode("//div[@class='h4 grid-view-item__title']");
+                        var priceNode = doc.DocumentNode.SelectSingleNode("//span[contains(@class, 'product-price__price') and contains(@class, 'is-bold') and contains(@class, 'qv-regularprice')]");
+                        var availabilityNode = doc.DocumentNode.SelectSingleNode("//span[@id='tag-container' and @class='outstock-overlay']");
 
                         if (nameNode != null && priceNode != null && availabilityNode != null)
                         {

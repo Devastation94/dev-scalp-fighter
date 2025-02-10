@@ -13,6 +13,7 @@ class WebpageMonitor {
     private static DiscordClient discordClient = new();
     private static _401GamesClient _401GamesClient = new();
     private static CanadaComputersClient CanadaComputersClient = new();
+    private static ChimeraClient ChimeraClient = new();
 
     static async Task Main () {
         Console.WriteLine ("Starting webpage monitor...");
@@ -25,6 +26,7 @@ class WebpageMonitor {
         ProductsInStock = new();
         await ScanJJ (); // Initial check
         await ScanCanadaComputers();
+        await ScanChimera();
        // await ScanPokemonCenter();
        // await ScanChimera();
       //  await Scan401Games();
@@ -37,6 +39,7 @@ class WebpageMonitor {
         ProductsInStock = new();
         await ScanJJ();
         await ScanCanadaComputers();
+        await ScanChimera();
         await PostResults();
         //   await ScanPokemonCenter();
         // await ScanChimera();
@@ -59,6 +62,7 @@ class WebpageMonitor {
                 {
                     foreach (var itemInStock in newItemsInStock)
                     {
+                        webhookValue += $"{itemInStock.Keyword} Products:\n";
                         foreach (var product in itemInStock.Products)
                         {
                             var productInfo = $"New Item Listed: {product.Name}, Price: {product.Price}, Status: {product.Available}\n";
@@ -82,6 +86,11 @@ class WebpageMonitor {
         ProductsInStock.AddRange(gpuResults);
     }
 
+    private static async Task ScanChimera()
+    {
+        var pokemonResults = await ChimeraClient.GetPokemon();
+    }
+
     private static async Task Scan401Games()
     {
         var pokemonCenterResults = await _401GamesClient.GetPokemon();
@@ -90,11 +99,6 @@ class WebpageMonitor {
     private static async Task ScanPokemonCenter()
     {
         var pokemonCenterResults = await PokemonCenterClient.GetPokemon();
-    }
-    
-    private static async Task ScanChimera()
-    {
-
     }
 
     private static async Task ScanJJ () {
