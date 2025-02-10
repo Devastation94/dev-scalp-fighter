@@ -5,7 +5,6 @@ using Timer = System.Timers.Timer;
 
 class WebpageMonitor
 {
-
     private static Timer timer;
     private static List<Search> OldProductsInStock = new();
     private static List<Search> ProductsInStock = new();
@@ -21,11 +20,19 @@ class WebpageMonitor
         Console.WriteLine("Program.Main: Starting in stock monitor...");
         OldProductsInStock = JsonSerializer.Deserialize<List<Search>>(File.ReadAllText("Cache.json"));
         timer = new Timer(60000); // Check every 60 seconds
-        timer.Elapsed += async (sender, e) => await HandleElapsedEvent();
+        timer.Elapsed += async (sender, e) => await ScanStores();
 
         timer.Start();
 
+        await ScanStores();
+        Console.WriteLine("Program.HandleElapsedEvent: Waiting 60 seconds");
+        Console.ReadLine(); // Keep the program running
+    }
+
+    static async Task ScanStores()
+    {
         ProductsInStock = new();
+
         await ScanJJ(); // Initial check
         await ScanCanadaComputers();
         //await ScanChimera();
@@ -33,20 +40,6 @@ class WebpageMonitor
         // await ScanChimera();
         //  await Scan401Games();
         await PostResults();
-        Console.WriteLine("Program.HandleElapsedEvent: Waiting 60 seconds");
-        Console.ReadLine(); // Keep the program running
-    }
-
-    static async Task HandleElapsedEvent()
-    {
-        ProductsInStock = new();
-        await ScanJJ();
-        await ScanCanadaComputers();
-        // await ScanChimera();
-        await PostResults();
-        //   await ScanPokemonCenter();
-        // await ScanChimera();
-        //  await Scan401Games();
     }
 
     private static async Task PostResults()
@@ -86,8 +79,15 @@ class WebpageMonitor
 
     private static async Task ScanCanadaComputers()
     {
-        var gpuResults = await CanadaComputersClient.GetProducts();
-        ProductsInStock.AddRange(gpuResults);
+        try
+        {
+            var gpuResults = await CanadaComputersClient.GetProducts();
+            ProductsInStock.AddRange(gpuResults);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting products for CC: {ex.Message}");
+        }
     }
 
     private static async Task ScanChimera()
@@ -111,11 +111,10 @@ class WebpageMonitor
         {
             var jjResults = await jJClient.GetProducts();
             ProductsInStock.AddRange(jjResults);
-
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching webpage: {ex.Message}");
+            Console.WriteLine($"Error getting products for JJ: {ex.Message}");
         }
     }
 
