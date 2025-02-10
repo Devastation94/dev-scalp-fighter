@@ -1,7 +1,7 @@
-﻿using scalp_fighter.Clients;
+﻿using Microsoft.Extensions.Caching.Memory;
+using scalp_fighter.Clients;
 using scalp_fighter.Data;
 using System.Text.Json;
-using Timer = System.Timers.Timer;
 
 class WebpageMonitor
 {
@@ -14,18 +14,19 @@ class WebpageMonitor
     private static _401GamesClient _401GamesClient = new();
     private static CanadaComputersClient CanadaComputersClient = new();
     private static ChimeraClient ChimeraClient = new();
+    private static IMemoryCache cache = new MemoryCache(new MemoryCacheOptions());
 
     static async Task Main()
     {
         Console.WriteLine("Program.Main: Starting in stock monitor...");
-        OldProductsInStock = JsonSerializer.Deserialize<List<Search>>(File.ReadAllText("Cache.json"));
-        timer = new Timer(60000); // Check every 60 seconds
-        timer.Elapsed += async (sender, e) => await ScanStores();
 
-        timer.Start();
-
+        // Start the initial scan and wait for it to complete
         await ScanStores();
-        Console.WriteLine("Program.HandleElapsedEvent: Waiting 60 seconds");
+
+        // Now start the timer after ScanStores completes
+        timer = new Timer(async _ => await ScanStores(), null, 60000, 60000);
+
+        Console.WriteLine("Program.Main: Waiting for timer to trigger scans every 60 seconds...");
         Console.ReadLine(); // Keep the program running
     }
 
@@ -35,10 +36,10 @@ class WebpageMonitor
 
         await ScanJJ(); // Initial check
         await ScanCanadaComputers();
-        //await ScanChimera();
+        await ScanChimera();
         // await ScanPokemonCenter();
         // await ScanChimera();
-        //  await Scan401Games();
+        //await Scan401Games();
         await PostResults();
     }
 
@@ -54,26 +55,12 @@ class WebpageMonitor
 
             if (newItemsInStock.Count > 0)
             {
-                foreach (var itemInStock in newItemsInStock)
-                {
-                    if (itemInStock.Products.Count > 0)
-                    {
-                        webhookValue += $"{itemInStock.Keyword} Products:\n";
-                    }
-                    foreach (var product in itemInStock.Products)
-                    {
-                        var productInfo = $"New Item Now In Stock: {product.Name}, Price: {product.Price}";
-                        Console.WriteLine($"Program.PostResults: {productInfo}");
-                        webhookValue += product.Url;
-                    }
-                }
+                await discordClient.PostWebHook(newItemsInStock);
 
-                await discordClient.PostWebHook(webhookValue);
+                OldProductsInStock = ProductsInStock;
+
 
             }
-
-            File.WriteAllText("Cache.json", productsInStockJson);
-            OldProductsInStock = ProductsInStock;
         }
     }
 
@@ -92,7 +79,15 @@ class WebpageMonitor
 
     private static async Task ScanChimera()
     {
-        var pokemonResults = await ChimeraClient.GetPokemon();
+        try
+        {
+            var chimeraResults = await ChimeraClient.GetPokemon();
+            ProductsInStock.AddRange(chimeraResults);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting products for Chimera: {ex.Message}");
+        }
     }
 
     private static async Task Scan401Games()
@@ -125,7 +120,10 @@ class WebpageMonitor
         // Iterate through the new searches
         foreach (var newSearch in ProductsInStock)
         {
-            var oldSearch = OldProductsInStock.FirstOrDefault(s => s.Keyword == newSearch.Keyword);
+            // Find old search with the same keyword and store
+            var oldSearch = OldProductsInStock
+                .FirstOrDefault(s => s.Keyword == newSearch.Keyword && s.Store == newSearch.Store);
+
             if (oldSearch != null)
             {
                 // Find products in newSearch that are not in oldSearch based on product name
@@ -135,7 +133,7 @@ class WebpageMonitor
 
                 if (newProducts.Any())
                 {
-                    result.Add(new Search(newSearch.Keyword, newProducts));
+                    result.Add(new Search(newSearch.Keyword, newSearch.Store, newProducts));
                 }
             }
             else
@@ -147,5 +145,6 @@ class WebpageMonitor
 
         return result;
     }
+
 
 }

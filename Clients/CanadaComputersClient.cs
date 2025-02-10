@@ -49,14 +49,14 @@ namespace scalp_fighter.Clients
 
                             if (availability.Trim().ToUpper() != "NOT AVAILABLE FOR ORDER")
                             {
-                                inStockProducts.Add(new Product(productName, productPrice, true, url));
+                                inStockProducts.Add(new Product(productName, productPrice, url));
                             }
                         }
                     }
 
                     if (inStockProducts.Count > 0)
                     {
-                        searchList.Add(new Search(keyword, inStockProducts));
+                        searchList.Add(new Search(keyword, "CC", inStockProducts));
                     }
 
                     Console.WriteLine($"CanadaComputersClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");

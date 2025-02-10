@@ -2,26 +2,26 @@ namespace scalp_fighter.Data
 {
     public class Search
     {
-        public Search(string keyword, List<Product> products)
+        public Search(string keyword, string store,List<Product> products)
         {
             Keyword = keyword;
+            Store = store;
             Products = products;
         }
         public string Keyword { get; set; }
+        public string Store { get; set; }
         public List<Product> Products { get; set; }
     }
     public class Product
     {
         public string Name { get; }
         public string Price { get; }
-        public bool Available { get; }
         public string Url { get; set; }
 
-        public Product(string name, string price, bool available, string url)
+        public Product(string name, string price, string url)
         {
             Name = name;
             Price = price;
-            Available = available;
             Url = $"[{name}]({url}) {price}\n";
         }
     }

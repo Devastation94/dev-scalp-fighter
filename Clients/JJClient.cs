@@ -64,14 +64,14 @@ namespace scalp_fighter.Clients
 
                             if (availability.Trim().ToUpper() == "IN STOCK.")
                             {
-                                inStockProducts.Add(new Product(productName, productPrice, true, url));
+                                inStockProducts.Add(new Product(productName, productPrice, url));
                             }
                         }
                     }
 
                     if (inStockProducts.Count > 0)
                     {
-                        searchList.Add(new Search(keyword, inStockProducts));
+                        searchList.Add(new Search(keyword, "JJ", inStockProducts));
                     }
 
                     Console.WriteLine($"JJClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");

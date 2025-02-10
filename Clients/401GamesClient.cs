@@ -53,11 +53,11 @@ namespace scalp_fighter.Clients
 
                             if (availability.Trim().ToUpper() == "IN STOCK.")
                             {
-                                inStockProducts.Add(new Product(productName, productPrice, true, url));
+                                inStockProducts.Add(new Product(productName, productPrice, url));
                             }
                         }
                     }
-                    searchList.Add(new Search(keyword, inStockProducts));
+                    searchList.Add(new Search(keyword, "401", inStockProducts));
                     Console.WriteLine($"Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                 }
             }

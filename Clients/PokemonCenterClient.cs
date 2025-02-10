@@ -52,11 +52,11 @@ namespace scalp_fighter.Clients
 
                             if (!availability.ToLower().Contains("out of stock"))
                             {
-                                inStockProducts.Add(new Product(productName, productPrice, true, productUrl));
+                                inStockProducts.Add(new Product(productName, productPrice, productUrl));
                             }
                         }
                     }
-                    searchList.Add(new Search(keyword, inStockProducts));
+                    searchList.Add(new Search(keyword, "PC", inStockProducts));
                     Console.WriteLine($"Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                 }
             }
