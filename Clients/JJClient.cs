@@ -75,6 +75,7 @@ namespace scalp_fighter.Clients
                     }
 
                     Console.WriteLine($"JJClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
+                    Thread.Sleep(5000);
                 }
             }
             catch (Exception ex)
