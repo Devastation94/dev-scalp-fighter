@@ -19,15 +19,17 @@ class WebpageMonitor
 
     static async Task Main()
     {
-        Console.WriteLine("Program.Main: Starting in stock monitor...");
+        Console.WriteLine("Program.Main: Starting to monitor stock...");
 
         // Start the initial scan and wait for it to complete
-        await ScanStores();
 
-        // Now start the timer after ScanStores completes
-        timer = new Timer(async _ => await ScanStores(), null, 60000, 60000);
-
-        Console.WriteLine("Program.Main: Waiting for timer to trigger scans every 60 seconds...");
+        while (true)
+        {
+            await ScanStores(); 
+            Console.WriteLine("Program.Main: Waiting 60 seconds...");
+            Thread.Sleep(60000);
+        }
+        
         Console.ReadLine(); // Keep the program running
     }
 
