@@ -12,12 +12,13 @@ namespace scalp_fighter.Clients
     public class CanadaComputersClient
     {
         private static readonly HttpClient client = new();
-        private static readonly string ccSearchUrl = "https://www.canadacomputers.com/{0}";
+        private static readonly string ccSearchUrl = "https://www.canadacomputers.com/en/search?id_category=914&s={0}&a=0&b=0";
         private static readonly string jjAddToCartUrl = "https://shop.jjcards.com/add_cart.asp?quick=1&item_id={0}&cat_id=0";
-        private static readonly List<string> Keywords = new List<string>() { "en/powered-by-nvidia/268144/gigabyte-aorus-geforce-rtx-5080-master-16g-gddr7-gv-n5080aorus-m-16gd.html" };
+        private static readonly List<string> Keywords = new List<string>() { "rtx 5080" };
 
-        public async Task<List<Search>> GetPokemon()
+        public async Task<List<Search>> GetProducts()
         {
+            Console.WriteLine("CanadaComputersClient.GetProducts: START");
             var searchList = new List<Search>();
 
             try
@@ -25,23 +26,50 @@ namespace scalp_fighter.Clients
                 foreach (var keyword in Keywords)
                 {
                     var searchUrl = string.Format(ccSearchUrl, keyword);
-                    string content = await client.GetStringAsync(searchUrl);
+                    var content = await client.GetStringAsync(searchUrl);
                     var doc = new HtmlDocument();
                     doc.LoadHtml(content);
-                    var soldOutNode = doc.DocumentNode.SelectSingleNode("//p[@class='mt-1 text-dark f-16 fm-xs-SF-Pro-Display-Medium']").InnerText;
 
-                    if (soldOutNode.Trim().ToUpper().Contains("AVAILABLE"))
+                    var products = doc.DocumentNode.SelectNodes("//div[contains(@class, 'js-product')]");
+                    var inStockProducts = new List<Product>();
+
+                    if (products == null || products.Count == 0)
                     {
-                        var inStockProducts = new List<Product>();
-                        inStockProducts.Add(new Product("RTX 5080", "$1899", true, searchUrl));
+                        Console.WriteLine($"CanadaComputersClient.GetProducts: No {keyword} found");
+                        continue;
+                    }
 
-                        searchList.Add(new Search("Gigabyte RTX 5080", inStockProducts));
-                    }                
+                    foreach (var product in products)
+                    {
+                        var nameNode = doc.DocumentNode.SelectSingleNode("//h2[@class='h3 product-title mb-1']//a");
+                        var priceNode = doc.DocumentNode.SelectSingleNode("//span[contains(@class, 'price')]");
+                        var availabilityNode = doc.DocumentNode.SelectSingleNode("//small//b");
+                        var linkNode = doc.DocumentNode.SelectSingleNode("//h2[@class='h3 product-title mb-1']//a");
+
+                        if (nameNode != null && priceNode != null && availabilityNode != null && linkNode != null)
+                        {
+                            var productName = nameNode.InnerText.Trim();
+                            var url = linkNode.GetAttributeValue("href", string.Empty);
+                            var productPrice = priceNode.InnerText.Trim();
+                            var availability = availabilityNode.InnerText.Trim();
+
+                            if (availability.Trim().ToUpper() != "NOT AVAILABLE FOR ORDER")
+                            {
+                                inStockProducts.Add(new Product(productName, productPrice, true, url));
+                            }
+                        }
+                    }
+                    searchList.Add(new Search(keyword, inStockProducts));
+                    Console.WriteLine($"CanadaComputersClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error fetching webpage: {ex.Message}");
+                Console.WriteLine($"CanadaComputersClient.GetProducts: Error fetching webpage: {ex.Message}");
+            }
+            finally
+            {
+                Console.WriteLine("CanadaComputersClient.GetProducts: END");
             }
             return searchList;
         }

@@ -9,9 +9,11 @@ namespace scalp_fighter.Clients {
         private static readonly HttpClient client = new ();
         private static readonly string jjSearchUrl = "https://shop.jjcards.com/search.asp?keyword={0}+tcg&sortby=2&page=1&catid=";
         private static readonly string jjAddToCartUrl = "https://shop.jjcards.com/add_cart.asp?quick=1&item_id={0}&cat_id=0";
-        private static readonly List<string> Keywords = new List<string> () { "Prismatic Evolutions", "Obsidian Flames", "Surging Sparks", "Journey Together" };
+        private static readonly List<string> Keywords = new() { "Prismatic Evolutions", "Obsidian Flames", "Surging Sparks", "Journey Together", "Stellar Crown",
+        "Shrouded Fable", "Twilight Masquerade", "Temportal Forces"};
 
-        public async Task<List<Search>> GetPokemon () {
+        public async Task<List<Search>> GetProducts () {
+            Console.WriteLine("JJClient.GetProducts: START");
             var searchList = new List<Search>();
             client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
@@ -29,7 +31,7 @@ namespace scalp_fighter.Clients {
 
                     if (products == null || products.Count == 0)
                     {
-                        Console.WriteLine($"No {keyword} found");
+                        Console.WriteLine($"JJClient.GetProducts: No {keyword} found");
                         continue;
                     }
 
@@ -56,10 +58,14 @@ namespace scalp_fighter.Clients {
                         }
                     }
                     searchList.Add(new Search(keyword, inStockProducts));
-                    Console.WriteLine($"Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
+                    Console.WriteLine($"JJClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                 }
             } catch (Exception ex) {
-                Console.WriteLine ($"Error fetching webpage: {ex.Message}");
+                Console.WriteLine ($"JJClient.GetProducts: Error fetching webpage: {ex.Message}");
+            }
+            finally
+            {
+                Console.WriteLine("JJClient.GetProducts: END");
             }
             return searchList;
         }

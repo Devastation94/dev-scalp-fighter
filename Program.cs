@@ -16,7 +16,7 @@ class WebpageMonitor {
     private static ChimeraClient ChimeraClient = new();
 
     static async Task Main () {
-        Console.WriteLine ("Starting webpage monitor...");
+        Console.WriteLine ("Program.Main: Starting in stock monitor...");
         OldProductsInStock = JsonSerializer.Deserialize<List<Search>>(File.ReadAllText("Cache.json"));
         timer = new Timer (60000); // Check every 60 seconds
         timer.Elapsed += async (sender, e) => await HandleElapsedEvent();
@@ -26,7 +26,7 @@ class WebpageMonitor {
         ProductsInStock = new();
         await ScanJJ (); // Initial check
         await ScanCanadaComputers();
-        await ScanChimera();
+        //await ScanChimera();
        // await ScanPokemonCenter();
        // await ScanChimera();
       //  await Scan401Games();
@@ -36,10 +36,11 @@ class WebpageMonitor {
 
    static async Task HandleElapsedEvent()
     {
+        Console.WriteLine("Program.HandleElapsedEvent: Waiting 60 seconds");
         ProductsInStock = new();
         await ScanJJ();
         await ScanCanadaComputers();
-        await ScanChimera();
+       // await ScanChimera();
         await PostResults();
         //   await ScanPokemonCenter();
         // await ScanChimera();
@@ -53,28 +54,29 @@ class WebpageMonitor {
 
         if (productsInStockJson != oldProductsInStockJson)
         {
-            foreach (var set in ProductsInStock)
-            {
-                var newItemsInStock = GetNewItemsInStock();
-                var webhookValue = "";
+            var newItemsInStock = GetNewItemsInStock();
+            var webhookValue = "";
 
-                if (newItemsInStock.Count > 0)
+            if (newItemsInStock.Count > 0)
+            {
+                foreach (var itemInStock in newItemsInStock)
                 {
-                    foreach (var itemInStock in newItemsInStock)
+                    if (itemInStock.Products.Count > 0)
                     {
                         webhookValue += $"{itemInStock.Keyword} Products:\n";
-                        foreach (var product in itemInStock.Products)
-                        {
-                            var productInfo = $"New Item Listed: {product.Name}, Price: {product.Price}, Status: {product.Available}\n";
-                            Console.WriteLine(productInfo);
-                            webhookValue += product.Url;
-                        }
                     }
-
-                    await discordClient.PostWebHook(webhookValue);
-
+                    foreach (var product in itemInStock.Products)
+                    {
+                        var productInfo = $"New Item Now In Stock: {product.Name}, Price: {product.Price}";
+                        Console.WriteLine($"Program.PostResults: {productInfo}");
+                        webhookValue += product.Url;
+                    }
                 }
+
+                await discordClient.PostWebHook(webhookValue);
+
             }
+            
             File.WriteAllText("Cache.json", productsInStockJson);
             OldProductsInStock = ProductsInStock;
         }
@@ -82,7 +84,7 @@ class WebpageMonitor {
 
     private static async Task ScanCanadaComputers()
     {
-        var gpuResults = await CanadaComputersClient.GetPokemon();
+        var gpuResults = await CanadaComputersClient.GetProducts();
         ProductsInStock.AddRange(gpuResults);
     }
 
@@ -103,7 +105,7 @@ class WebpageMonitor {
 
     private static async Task ScanJJ () {
         try {
-            var jjResults = await jJClient.GetPokemon();
+            var jjResults = await jJClient.GetProducts();
             ProductsInStock.AddRange(jjResults);
 
         } catch (Exception ex) {
