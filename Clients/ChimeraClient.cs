@@ -24,6 +24,7 @@ namespace scalp_fighter.Clients
 
         public async Task<List<Search>> GetPokemon()
         {
+            Console.WriteLine("ChimeraClient.GetProducts: START");
             var searchList = new List<Search>();
             client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
@@ -49,9 +50,10 @@ namespace scalp_fighter.Clients
                         var name = product.SelectSingleNode(".//div[@class='h4 grid-view-item__title']").InnerText.Trim();
                         var price = product.SelectSingleNode(".//span[contains(@class, 'product-price__price') and contains(@class, 'is-bold') and contains(@class, 'qv-regularprice')]").InnerText.Trim();
                         var url = ChimeraBaseUrl + product.SelectSingleNode(".//a[contains(@href, '/products/')]").GetAttributeValue("href", "");
-                        var availability = product.SelectSingleNode(".//span[@class='value']").InnerText.Trim().ToUpper().Contains("SOLD OUT");
+                        var availability = product.SelectSingleNode(".//span[@class='value']");
+                        var isSoldOut = availability.InnerText.Trim().ToUpper().Contains("SOLD OUT");
 
-                        if (name.Contains("pokemon") && double.Parse(price) > 20)
+                        if (name.ToUpper().Contains("POKEMON") && double.Parse(price[1..]) > 1 && !isSoldOut)
                         {
                             inStockProducts.Add(new Product(name, price, url));
                         }
@@ -62,13 +64,17 @@ namespace scalp_fighter.Clients
                         searchList.Add(new Search(keyword, "Chimera", inStockProducts));
                     }
 
-                    Console.WriteLine($"Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
+                    Console.WriteLine($"ChimeraClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                     Thread.Sleep(5000);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching webpage: {ex.Message}");
+            }
+            finally
+            {
+                Console.WriteLine("ChimeraClient.GetProducts: END");
             }
             return searchList;
         }

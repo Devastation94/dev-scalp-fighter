@@ -14,6 +14,7 @@ class WebpageMonitor
     private static _401GamesClient _401GamesClient = new();
     private static CanadaComputersClient CanadaComputersClient = new();
     private static ChimeraClient ChimeraClient = new();
+    private static AtlasClient AtlasClient = new();
     private static IMemoryCache cache = new MemoryCache(new MemoryCacheOptions());
 
     static async Task Main()
@@ -34,6 +35,7 @@ class WebpageMonitor
     {
         ProductsInStock = new();
 
+        await ScanAtlas();
         await ScanJJ(); // Initial check
         await ScanCanadaComputers();
         await ScanChimera();
@@ -90,14 +92,18 @@ class WebpageMonitor
         }
     }
 
-    private static async Task Scan401Games()
-    {
-        var pokemonCenterResults = await _401GamesClient.GetPokemon();
-    }
 
-    private static async Task ScanPokemonCenter()
+    private static async Task ScanAtlas()
     {
-        var pokemonCenterResults = await PokemonCenterClient.GetPokemon();
+        try
+        {
+            var atlasResults = await AtlasClient.GetPokemon();
+            ProductsInStock.AddRange(atlasResults);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting products for Atlas: {ex.Message}");
+        }
     }
 
     private static async Task ScanJJ()
@@ -112,6 +118,18 @@ class WebpageMonitor
             Console.WriteLine($"Error getting products for JJ: {ex.Message}");
         }
     }
+
+    private static async Task Scan401Games()
+    {
+        var pokemonCenterResults = await _401GamesClient.GetPokemon();
+    }
+
+    private static async Task ScanPokemonCenter()
+    {
+        var pokemonCenterResults = await PokemonCenterClient.GetPokemon();
+    }
+
+   
 
     public static List<Search> GetNewItemsInStock()
     {
