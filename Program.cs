@@ -3,44 +3,46 @@ using scalp_fighter.Data;
 using System.Text.Json;
 using Timer = System.Timers.Timer;
 
-class WebpageMonitor {
+class WebpageMonitor
+{
 
     private static Timer timer;
     private static List<Search> OldProductsInStock = new();
     private static List<Search> ProductsInStock = new();
-    private static JJClient jJClient = new ();
+    private static JJClient jJClient = new();
     private static PokemonCenterClient PokemonCenterClient = new();
     private static DiscordClient discordClient = new();
     private static _401GamesClient _401GamesClient = new();
     private static CanadaComputersClient CanadaComputersClient = new();
     private static ChimeraClient ChimeraClient = new();
 
-    static async Task Main () {
-        Console.WriteLine ("Program.Main: Starting in stock monitor...");
+    static async Task Main()
+    {
+        Console.WriteLine("Program.Main: Starting in stock monitor...");
         OldProductsInStock = JsonSerializer.Deserialize<List<Search>>(File.ReadAllText("Cache.json"));
-        timer = new Timer (60000); // Check every 60 seconds
+        timer = new Timer(60000); // Check every 60 seconds
         timer.Elapsed += async (sender, e) => await HandleElapsedEvent();
-       
-        timer.Start ();
+
+        timer.Start();
 
         ProductsInStock = new();
-        await ScanJJ (); // Initial check
+        await ScanJJ(); // Initial check
         await ScanCanadaComputers();
         //await ScanChimera();
-       // await ScanPokemonCenter();
-       // await ScanChimera();
-      //  await Scan401Games();
-      await PostResults();
-        Console.ReadLine (); // Keep the program running
+        // await ScanPokemonCenter();
+        // await ScanChimera();
+        //  await Scan401Games();
+        await PostResults();
+        Console.WriteLine("Program.HandleElapsedEvent: Waiting 60 seconds");
+        Console.ReadLine(); // Keep the program running
     }
 
-   static async Task HandleElapsedEvent()
+    static async Task HandleElapsedEvent()
     {
-        Console.WriteLine("Program.HandleElapsedEvent: Waiting 60 seconds");
         ProductsInStock = new();
         await ScanJJ();
         await ScanCanadaComputers();
-       // await ScanChimera();
+        // await ScanChimera();
         await PostResults();
         //   await ScanPokemonCenter();
         // await ScanChimera();
@@ -76,7 +78,7 @@ class WebpageMonitor {
                 await discordClient.PostWebHook(webhookValue);
 
             }
-            
+
             File.WriteAllText("Cache.json", productsInStockJson);
             OldProductsInStock = ProductsInStock;
         }
@@ -103,13 +105,17 @@ class WebpageMonitor {
         var pokemonCenterResults = await PokemonCenterClient.GetPokemon();
     }
 
-    private static async Task ScanJJ () {
-        try {
+    private static async Task ScanJJ()
+    {
+        try
+        {
             var jjResults = await jJClient.GetProducts();
             ProductsInStock.AddRange(jjResults);
 
-        } catch (Exception ex) {
-            Console.WriteLine ($"Error fetching webpage: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching webpage: {ex.Message}");
         }
     }
 
@@ -123,8 +129,11 @@ class WebpageMonitor {
             var oldSearch = OldProductsInStock.FirstOrDefault(s => s.Keyword == newSearch.Keyword);
             if (oldSearch != null)
             {
-                // Find products in newSearch that are not in oldSearch
-                var newProducts = newSearch.Products.Except(oldSearch.Products).ToList();
+                // Find products in newSearch that are not in oldSearch based on product name
+                var newProducts = newSearch.Products
+                    .Where(newProduct => !oldSearch.Products.Any(oldProduct => oldProduct.Name == newProduct.Name))
+                    .ToList();
+
                 if (newProducts.Any())
                 {
                     result.Add(new Search(newSearch.Keyword, newProducts));
@@ -139,4 +148,5 @@ class WebpageMonitor {
 
         return result;
     }
+
 }

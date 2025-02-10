@@ -1,20 +1,23 @@
 using HtmlAgilityPack;
 using scalp_fighter.Data;
 using System.Text.RegularExpressions;
-using System.Web;
 
-namespace scalp_fighter.Clients {
+namespace scalp_fighter.Clients
+{
 
-    public class ChimeraClient {
-        private static readonly HttpClient client = new ();
+    public class ChimeraClient
+    {
+        private static readonly HttpClient client = new();
         private static readonly string ChimeraSearchUrl = "https://shop.jjcards.com/search.asp?keyword={0}+tcg&sortby=2&page=1&catid=";
         private static readonly string jjAddToCartUrl = "https://shop.jjcards.com/add_cart.asp?quick=1&item_id={0}&cat_id=0";
-        private static readonly List<string> Keywords = new List<string> () { "Pokemon TCG" };
+        private static readonly List<string> Keywords = new List<string>() { "Pokemon TCG" };
 
-        public async Task<List<Search>> GetPokemon () {
+        public async Task<List<Search>> GetPokemon()
+        {
             var searchList = new List<Search>();
 
-            try {
+            try
+            {
                 foreach (var keyword in Keywords)
                 {
                     string content = await client.GetStringAsync(string.Format(ChimeraSearchUrl, keyword));
@@ -55,8 +58,10 @@ namespace scalp_fighter.Clients {
                     searchList.Add(new Search(keyword, inStockProducts));
                     Console.WriteLine($"Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                 }
-            } catch (Exception ex) {
-                Console.WriteLine ($"Error fetching webpage: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching webpage: {ex.Message}");
             }
             return searchList;
         }

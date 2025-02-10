@@ -1,11 +1,5 @@
 ﻿using HtmlAgilityPack;
 using scalp_fighter.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace scalp_fighter.Clients
 {
@@ -59,7 +53,12 @@ namespace scalp_fighter.Clients
                             }
                         }
                     }
-                    searchList.Add(new Search(keyword, inStockProducts));
+
+                    if (inStockProducts.Count > 0)
+                    {
+                        searchList.Add(new Search(keyword, inStockProducts));
+                    }
+
                     Console.WriteLine($"CanadaComputersClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                 }
             }

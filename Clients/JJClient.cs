@@ -1,18 +1,29 @@
 using HtmlAgilityPack;
 using scalp_fighter.Data;
 using System.Text.RegularExpressions;
-using System.Web;
 
-namespace scalp_fighter.Clients {
+namespace scalp_fighter.Clients
+{
 
-    public class JJClient {
-        private static readonly HttpClient client = new ();
+    public class JJClient
+    {
+        private static readonly HttpClient client = new();
         private static readonly string jjSearchUrl = "https://shop.jjcards.com/search.asp?keyword={0}+tcg&sortby=2&page=1&catid=";
         private static readonly string jjAddToCartUrl = "https://shop.jjcards.com/add_cart.asp?quick=1&item_id={0}&cat_id=0";
-        private static readonly List<string> Keywords = new() { "Prismatic Evolutions", "Obsidian Flames", "Surging Sparks", "Journey Together", "Stellar Crown",
-        "Shrouded Fable", "Twilight Masquerade", "Temportal Forces"};
+        private static readonly List<string> Keywords = new()
+        {
+            "Prismatic Evolutions",
+            "Obsidian Flames",
+            "Surging Sparks",
+            "Journey Together",
+            "Stellar Crown",
+            "Shrouded Fable",
+            "Twilight Masquerade",
+            "Temportal Forces"
+        };
 
-        public async Task<List<Search>> GetProducts () {
+        public async Task<List<Search>> GetProducts()
+        {
             Console.WriteLine("JJClient.GetProducts: START");
             var searchList = new List<Search>();
             client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
@@ -57,11 +68,18 @@ namespace scalp_fighter.Clients {
                             }
                         }
                     }
-                    searchList.Add(new Search(keyword, inStockProducts));
+
+                    if (inStockProducts.Count > 0)
+                    {
+                        searchList.Add(new Search(keyword, inStockProducts));
+                    }
+
                     Console.WriteLine($"JJClient.GetProducts: Found {products.Count} {keyword} products with {inStockProducts.Count} in stock");
                 }
-            } catch (Exception ex) {
-                Console.WriteLine ($"JJClient.GetProducts: Error fetching webpage: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"JJClient.GetProducts: Error fetching webpage: {ex.Message}");
             }
             finally
             {
