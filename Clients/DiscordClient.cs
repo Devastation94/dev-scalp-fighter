@@ -7,19 +7,21 @@ namespace scalp_fighter.Data
     {
         public async Task PostWebHook(List<Search> searchResults)
         {
+            var webHookValue = string.Empty;
+
             foreach (var storeGroup in searchResults.GroupBy(sr => sr.Store))
             {
-                var webHookValue = string.Empty;
+                webHookValue += $"- {storeGroup.Key}\n";
 
                 foreach (var itemInStock in storeGroup)
                 {
-                    webHookValue += $"{itemInStock.Store} {itemInStock.Keyword} Products:\n";
+                    webHookValue += $"  - {itemInStock.Keyword}\n";
 
                     foreach (var product in itemInStock.Products)
                     {
                         var productInfo = $"New Item Now In Stock: {product.Name}, Price: {product.Price}";
                         Console.WriteLine($"Program.PostResults: {productInfo}");
-                        webHookValue += product.Url;
+                        webHookValue += $"      - {product.Url}";
                     }
                 }
 
