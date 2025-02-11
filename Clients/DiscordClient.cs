@@ -7,11 +7,9 @@ namespace scalp_fighter.Data
     {
         public async Task PostWebHook(List<Search> searchResults)
         {
-            var webHookValue = string.Empty;
-
             foreach (var storeGroup in searchResults.GroupBy(sr => sr.Store))
             {
-                webHookValue += $"- {storeGroup.Key}\n";
+                var webHookValue = $"- {storeGroup.Key}\n";
 
                 foreach (var itemInStock in storeGroup)
                 {
