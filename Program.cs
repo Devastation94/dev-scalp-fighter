@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using scalp_fighter.Clients;
-using scalp_fighter.Data;
+﻿using dev_library.Clients;
+using dev_library.Data;
+using dev_refined.Clients;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
 class WebpageMonitor
@@ -123,12 +124,12 @@ class WebpageMonitor
 
     private static async Task Scan401Games()
     {
-        var pokemonCenterResults = await _401GamesClient.GetPokemon();
+       // var pokemonCenterResults = await _401GamesClient.GetPokemon();
     }
 
     private static async Task ScanPokemonCenter()
     {
-        var pokemonCenterResults = await PokemonCenterClient.GetPokemon();
+       // var pokemonCenterResults = await PokemonCenterClient.GetPokemon();
     }
 
    

@@ -27,4 +27,8 @@
     <PackageReference Include="restsharp" Version="112.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\dev-library\dev-library.csproj" />
+  </ItemGroup>
+
 </Project>
