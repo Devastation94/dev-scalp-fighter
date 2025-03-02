@@ -2,6 +2,7 @@
 using dev_library.Data;
 using dev_refined.Clients;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using System.Text.Json;
 
 class WebpageMonitor
@@ -52,8 +53,8 @@ class WebpageMonitor
 
     private static async Task PostResults()
     {
-        var productsInStockJson = File.ReadAllText($"{AppSettings.BasePath}/pokemoncache.json");
-        var oldProductsInStockJson = JsonSerializer.Serialize(OldProductsInStock);
+        var productsInStockJson = JsonConvert.SerializeObject(ProductsInStock);
+        var oldProductsInStockJson = File.ReadAllText($"{AppSettings.BasePath}/pokemoncache.json");
 
         if (productsInStockJson != oldProductsInStockJson)
         {
