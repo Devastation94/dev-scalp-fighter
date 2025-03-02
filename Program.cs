@@ -24,6 +24,8 @@ class WebpageMonitor
 
         // Start the initial scan and wait for it to complete
 
+        AppSettings.Initialize();
+
         while (true)
         {
             await ScanStores(); 
