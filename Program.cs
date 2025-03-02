@@ -52,21 +52,19 @@ class WebpageMonitor
 
     private static async Task PostResults()
     {
-        var productsInStockJson = JsonSerializer.Serialize(ProductsInStock);
+        var productsInStockJson = File.ReadAllText($"{AppSettings.BasePath}/pokemoncache.json");
         var oldProductsInStockJson = JsonSerializer.Serialize(OldProductsInStock);
 
         if (productsInStockJson != oldProductsInStockJson)
         {
             var newItemsInStock = GetNewItemsInStock();
-            var webhookValue = "";
 
             if (newItemsInStock.Count > 0)
             {
                 await discordClient.PostWebHook(newItemsInStock);
 
+                File.WriteAllText($"{AppSettings.BasePath}/pokemoncache.json", productsInStockJson);
                 OldProductsInStock = ProductsInStock;
-
-
             }
         }
     }
