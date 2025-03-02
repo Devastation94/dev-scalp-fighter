@@ -31,7 +31,7 @@ class WebpageMonitor
         {
             await ScanStores(); 
             Console.WriteLine("Program.Main: Waiting 60 seconds...");
-            Thread.Sleep(60000);
+            Thread.Sleep(300000);
         }
         
         Console.ReadLine(); // Keep the program running
