@@ -27,12 +27,7 @@ class WebpageMonitor
 
         AppSettings.Initialize();
 
-        while (true)
-        {
-            await ScanStores(); 
-            Console.WriteLine("Program.Main: Waiting 60 seconds...");
-            Thread.Sleep(300000);
-        }
+        await ScanStores(); 
         
         Console.ReadLine(); // Keep the program running
     }
